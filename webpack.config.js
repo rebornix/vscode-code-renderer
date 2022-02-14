@@ -46,10 +46,10 @@ const makeConfig = (argv, { entry, out, target, library = 'commonjs' }) => ({
                 test: /\.css$/,
                 use:'css-loader'
             },
-            {
-				test: /\.ttf$/,
-				use: ['file-loader']
-			}
+			{
+                test: /\.(jpe?g|png|ttf|eot|svg|woff(2)?)(\?[a-z0-9=&.]+)?$/,
+                use: 'base64-inline-loader'
+            }
         ],
     },
     plugins: [
@@ -104,7 +104,7 @@ module.exports = (env, argv) => [
                         }
                     }
                 }]
-            }]
+			}]
         }
     }
 ];

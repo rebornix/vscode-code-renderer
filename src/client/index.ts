@@ -3,6 +3,7 @@ import errorOverlay from 'vscode-notebook-error-overlay';
 import type { ActivationFunction } from 'vscode-notebook-renderer';
 import { Tokenizer } from './tokenizer';
 import * as monaco from 'monaco-editor/esm/vs/editor/editor.api.js';
+import style from 'monaco-editor/min/vs/editor/editor.main.css';
 
 // Fix the public path so that any async import()'s work as expected.
 // eslint-disable-next-line @typescript-eslint/naming-convention
@@ -24,6 +25,7 @@ export const activate: ActivationFunction = context => {
         _initializeResolve = resolve;
     });
 
+    const _languagePromises = new Map<string, Promise<void>>();
     const _pendingLanguageRequest: Map<string, () => void> = new Map<string, () => void>();
     async function loadLanguage(languageId: string) {
         console.log('load language', languageId);
@@ -31,13 +33,19 @@ export const activate: ActivationFunction = context => {
             return;
         }
 
-        return new Promise<void>(resolve => {
+        if (_languagePromises.has(languageId)) {
+            return _languagePromises.get(languageId);
+        }
+
+        const p = new Promise<void>(resolve => {
             _pendingLanguageRequest.set(languageId, resolve);
             context.postMessage!({
                 type: 2,
                 data: languageId
             });
         });
+        _languagePromises.set(languageId, p);
+        return p;
     }
 
     let themeData: any;
@@ -104,30 +112,25 @@ export const activate: ActivationFunction = context => {
             data: themeName
         });
     }
+
+        // Format the JSON and insert it as <pre><code>{ ... }</code></pre>
+    // Replace this with your custom code!
+    let styleTag = document.createElement('style');
+    styleTag.innerHTML = style.toString();
+    document.body.appendChild(styleTag);
+    styleTag.classList.add('renderer-monaco-colors');
+
     return {
         renderOutputItem(outputItem, element) {
-            let shadow = element.shadowRoot;
-            if (!shadow) {
-                shadow = element.attachShadow({ mode: 'open' });
-                const root = document.createElement('div');
-                root.id = 'root';
-                shadow.append(root);
-            }
-            const root = shadow.querySelector<HTMLElement>('#root')!;
-            errorOverlay.wrap(root, async () => {
-                root.innerHTML = '';
-                const node = document.createElement('div');
-                root.appendChild(node);
-                initializePromise.then(async () => {
-                    if (!themeData) {
-                        await loadThemePromise; 
-                    }
-                    const language = outputItem.mime.substring(7);
-                    loadLanguage(language).then(() => {
-                        render({ container: node, mime: outputItem.mime, value: outputItem.text(), context }, sanitizedThemeName);
-                    });
-                });
-            });
+            const node = document.createElement('div');
+            element.appendChild(node);
+            const language = outputItem.mime.substring(7);
+            render({ container: node, mime: outputItem.mime, value: outputItem.text(), context }, sanitizedThemeName, initializePromise.then(async () => {
+                if (!themeData) {
+                    await loadThemePromise;
+                }
+                await loadLanguage(language);
+            }));
         },
         disposeOutputItem(outputId) {
             // Do any teardown here. outputId is the cell output being deleted, or

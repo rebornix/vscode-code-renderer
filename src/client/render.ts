@@ -1,9 +1,10 @@
 // We've set up this sample using CSS modules, which lets you import class
 // names into JavaScript: https://github.com/css-modules/css-modules
 // You can configure or change this in the webpack.config.js file.
-import style from 'monaco-editor/min/vs/editor/editor.main.css';
 import type { RendererContext } from 'vscode-notebook-renderer';
 import 'monaco-editor/esm/vs/editor/browser/controller/coreCommands.js';
+import 'monaco-editor/esm/vs/editor/contrib/folding/browser/folding.js';
+import 'monaco-editor/esm/vs/editor/contrib/contextmenu/browser/contextmenu.js';
 import * as monaco from 'monaco-editor/esm/vs/editor/editor.api.js';
 
 interface IRenderInfo {
@@ -14,13 +15,7 @@ interface IRenderInfo {
 }
 
 // This function is called to render your contents.
-export function render(info: { container: HTMLElement, mime: string, value: string, context: RendererContext<unknown> }, themeName: string) {
-    // Format the JSON and insert it as <pre><code>{ ... }</code></pre>
-    // Replace this with your custom code!
-    let styleTag = document.createElement('style');
-    styleTag.innerHTML = style.toString();
-    info.container.appendChild(styleTag);
-    styleTag.classList.add('renderer-monaco-colors');
+export function render(info: { container: HTMLElement, mime: string, value: string, context: RendererContext<unknown> }, themeName: string, texmateInit: Promise<any>) {
     let monacoEditorOverride = document.createElement('style');
     monacoEditorOverride.innerHTML = `
     .monaco-editor, .monaco-editor-background,
@@ -61,7 +56,7 @@ export function render(info: { container: HTMLElement, mime: string, value: stri
 			alwaysConsumeMouseWheel: false
 		},
 		automaticLayout: true,
-        theme: themeName
+        theme: document.body.classList.contains('vscode-light') ? 'vs' : 'vs-dark'
     });
     editor.onDidContentSizeChange(e => {
         const editorHeight = Math.min(16 *  18, e.contentHeight);
@@ -74,6 +69,14 @@ export function render(info: { container: HTMLElement, mime: string, value: stri
     const height =  Math.min(model.getLineCount(), 16) * 18;
     editor.layout({ height, width });
     editorContainer.style.height = `${height + 8}px`;
+
+    texmateInit.then(() => {
+        console.log(themeName);
+        editor.updateOptions({
+            theme: themeName
+        });
+        editor.layout();
+    });
 }
 
 if (module.hot) {
