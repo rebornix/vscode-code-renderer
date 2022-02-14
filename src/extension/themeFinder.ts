@@ -93,24 +93,40 @@ export class ThemeFinder {
         }
     }
 
-    private async findMatchingLanguageConfiguration(language: string) {
+    private async findMatchingLanguageConfiguration(languageId: string) {
         try {
-            const extensionsPath = this.getExtensionsPath();
+            const extensions = vscode.extensions.all;
+            let foundResult: { extension: vscode.Extension<any>; configurationPath: string; }[] = [];
+            await Promise.all(extensions.map(async extension => {
+                if (extension.packageJSON.contributes && extension.packageJSON.contributes.languages) {
+                    const languages = extension.packageJSON.contributes.languages;
+                    const matchedLanguage = languages.find((language: any) => {
+                        if (language.id === languageId || (language.aliases && language.aliases.find((alias: string) => alias.toLowerCase() === languageId))) {
+                            return true;
+                        }
+                    });
 
-            // See if the 'language-configuration.json' file exists
-            if (fs.existsSync(path.join(extensionsPath, language, 'language-configuration.json'))) {
-                const contents = await fs.promises.readFile(path.join(extensionsPath, 'language-configuration.json'));
+                    if (!matchedLanguage) {
+                        return;
+                    }
+
+                    if (matchedLanguage.configuration) {
+                        foundResult.push({
+                            extension,
+                            configurationPath: matchedLanguage.configuration
+                        });
+                    }
+                }
+            }));
+
+            if (foundResult.length > 0) {
+                const contents = await fs.promises.readFile(path.join(foundResult[0].extension.extensionPath, foundResult[0].configurationPath));
                 return contents.toString();
             }
 
-            if (fs.existsSync(path.join(extensionsPath, language, `${language}-language-configuration.json`))) {
-                const contents = await fs.promises.readFile(path.join(extensionsPath, `${language}-language-configuration.json`));
-                return contents.toString();
-            }
+        } catch (_e) {}
 
-        } catch (_e) {
-            return {};
-        }
+        return {};
     }
 
     //#endregion
@@ -417,7 +433,6 @@ export class ThemeFinder {
     //#endregion
 
     private getExtensionsPath(): string {
-        console.log(vscode.extensions.all);
         const currentExe = process.execPath;
         let currentPath = path.dirname(currentExe);
 
