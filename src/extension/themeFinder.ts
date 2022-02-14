@@ -44,16 +44,6 @@ export class ThemeFinder {
         return this.languageCache[language];
     }
 
-    private async findMatchingLanguage(language: string): Promise<string | undefined> {
-        const extensionsPath = this.getExtensionsPath();
-
-        // Search through all of the files in this folder
-        let results = await this.findMatchingLanguages(language, extensionsPath);
-
-
-        return results;
-    }
-
     private async searchLocal(pattern: string, rootPath: string) {
         return new Promise<string[]>((resolve, reject) => {
             glob(pattern, { cwd: rootPath }, (err, matches) => {
@@ -66,7 +56,7 @@ export class ThemeFinder {
         });
     }
 
-    private async findMatchingLanguages(language: string, rootPath: string): Promise<string | undefined> {
+    private async findMatchingLanguage(language: string): Promise<string | undefined> {
         for (let i = 0; i < vscode.extensions.all.length; i++) {
             const data = await this.findMatchingLanguageFromJson(vscode.extensions.all[i], language);
             if (data) {
@@ -427,6 +417,7 @@ export class ThemeFinder {
     //#endregion
 
     private getExtensionsPath(): string {
+        console.log(vscode.extensions.all);
         const currentExe = process.execPath;
         let currentPath = path.dirname(currentExe);
 
