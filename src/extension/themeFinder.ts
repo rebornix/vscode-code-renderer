@@ -4,6 +4,7 @@ import * as vscode from 'vscode';
 import * as path from 'path';
 import * as fs from 'fs';
 import * as glob from 'glob';
+import { parse } from './json';
 
 interface IThemeData {
     rootFile: string;
@@ -247,7 +248,7 @@ export class ThemeFinder {
 
         if (themeRoot) {
             const contents = await fs.promises.readFile(themeRoot);
-            const json = JSON.parse(contents.toString());
+            const json = parse(contents.toString());
 
             const contributes = json.contributes;
 
@@ -286,14 +287,14 @@ export class ThemeFinder {
     }> {
         try {
             const tokenContent = await fs.promises.readFile(themeFile);
-            const theme = JSON.parse(tokenContent.toString());
+            const theme = parse(tokenContent.toString());
             const type = theme.type;
             const colors = theme.colors;
             let tokenColors = [];
 
             if (typeof theme.tokenColors === 'string') {
                 const style = await fs.promises.readFile(theme.tokenColors);
-                tokenColors = JSON.parse(style.toString());
+                tokenColors = parse(style.toString());
             } else {
                 tokenColors = theme.tokenColors;
             }
@@ -376,12 +377,6 @@ export class ThemeFinder {
                 return result;
             }
         }
-
-        const extensionsPath = this.getExtensionsPath();
-        const other = await this.findMatchingThemes(extensionsPath, themeName);
-        if (other) {
-            return other;
-        }
     }
 
     private async findMatchingThemes(rootPath: string, themeName: string): Promise<IThemeData | undefined> {
@@ -403,7 +398,7 @@ export class ThemeFinder {
     private async findMatchingThemeFromJson(packageJson: string, themeName: string): Promise<IThemeData | undefined> {
         // Read the contents of the json file
         const text = (await fs.promises.readFile(packageJson)).toString();
-        const json = JSON.parse(text);
+        const json = parse(text);
 
         // Should have a name entry and a contributes entry
         if (json.hasOwnProperty('name') && json.hasOwnProperty('contributes')) {
@@ -431,17 +426,4 @@ export class ThemeFinder {
     }
 
     //#endregion
-
-    private getExtensionsPath(): string {
-        const currentExe = process.execPath;
-        let currentPath = path.dirname(currentExe);
-
-        // Should be somewhere under currentPath/resources/app/extensions inside of a json file
-        let extensionsPath = path.join(currentPath, 'resources', 'app', 'extensions');
-        if (!(fs.existsSync(extensionsPath))) {
-            extensionsPath = path.join(currentPath, '../', 'resources', 'app', 'extensions');
-        }
-
-        return extensionsPath;
-    }
 }
