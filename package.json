@@ -1,8 +1,8 @@
 {
   "name": "vscode-code-renderer",
-  "displayName": "vscode-code-renderer",
+  "displayName": "Source code renderer for notebooks",
   "description": "Source code renderer for VS Code notebooks",
-  "version": "0.0.1",
+  "version": "0.0.2",
   "engines": {
     "vscode": "^1.64.0"
   },
@@ -13,9 +13,10 @@
     "Other"
   ],
   "publisher": "rebornix",
-  "activationEvents": [],
+  "activationEvents": [
+      "*"
+  ],
   "main": "./out/extension/extension.js",
-  "browser": "./out/extension/extension.web.js",
   "repository": {
     "type": "git",
     "url": "https://github.com/rebornix/vscode-code-renderer"
@@ -26,6 +27,7 @@
         "id": "vscode-code-renderer",
         "entrypoint": "./out/client/index.js",
         "displayName": "vscode-code-renderer",
+        "requiresMessaging": "always",
         "mimeTypes": [
             "text/x-css",
             "text/x-html",
@@ -113,7 +115,10 @@
   },
   "dependencies": {
     "monaco-editor-webpack-plugin": "^7.0.1",
-    "monaco-editor": "^0.32.1"
+    "monaco-editor": "^0.32.1",
+    "monaco-editor-textmate": "^2.2.1",
+    "monaco-textmate": "^3.0.1",
+    "onigasm": "^2.2.2"
   },
   "devDependencies": {
     "@types/glob": "^7.1.4",

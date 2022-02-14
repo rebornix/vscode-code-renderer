@@ -16,9 +16,19 @@
       "outFiles": [
         "${workspaceFolder}/out/**/*.js"
       ],
-    //   "debugWebviews": true,
-      "trace": true,
-    //   "preLaunchTask": "npm: watch"
+      "sourceMaps": true
+    },
+    {
+        "args": [
+            "--extensionDevelopmentPath=${workspaceFolder}",
+            "${workspaceFolder}/example"
+        ],
+        "name": "Launch Extension",
+        "outFiles": [
+            "${workspaceFolder}/out/**/*.js"
+        ],
+        "request": "launch",
+        "type": "pwa-extensionHost"
     },
     {
       "name": "Run Extension (no server)",
@@ -30,8 +40,9 @@
       "outFiles": [
         "${workspaceFolder}/out/**/*.js"
       ],
-      "debugWebviews": true,
-      "preLaunchTask": "npm: watch"
+      "sourceMaps": true
+    //   "debugWebviews": true,
+    //   "preLaunchTask": "npm: watch"
     },
     {
       "name": "Extension Tests",

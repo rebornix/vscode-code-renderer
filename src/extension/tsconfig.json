@@ -3,6 +3,10 @@
   "compilerOptions": {
     "rootDir": ".",
     "outDir": "../../out/extension",
+    "target": "ESNext",
+    "lib": [
+      "ESNext"
+    ],
   },
   "references": []
 }
