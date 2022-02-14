@@ -243,7 +243,6 @@ export class ThemeFinder {
         colors: any
         tokenColors: any[]
     } | undefined> {
-        console.log(`load theme ${theme}`);
         const themeRoot = await this.findThemeRootJson(theme);
 
         if (themeRoot) {
@@ -274,7 +273,6 @@ export class ThemeFinder {
                 // Then the path entry should contain a relative path to the json file with
                 // the tokens in it
                 const themeFile = path.join(path.dirname(themeRoot), found.path);
-                console.log(`Reading colors from ${themeFile}`);
                 return await this.readColors(themeFile);
             }
         }
@@ -375,22 +373,6 @@ export class ThemeFinder {
             const result = await this.findMatchingThemeFromJson(path.join(e.extensionPath, 'package.json'), themeName);
             if (result) {
                 return result;
-            }
-        }
-    }
-
-    private async findMatchingThemes(rootPath: string, themeName: string): Promise<IThemeData | undefined> {
-        // Search through all package.json files in the directory and below, looking
-        // for the themeName in them.
-        const foundPackages = await this.searchLocal('**/package.json', rootPath);
-        if (foundPackages && foundPackages.length > 0) {
-            // For each one, open it up and look for the theme name.
-            for (const f of foundPackages) {
-                const fpath = path.join(rootPath, f);
-                const data = await this.findMatchingThemeFromJson(fpath, themeName);
-                if (data) {
-                    return data;
-                }
             }
         }
     }
